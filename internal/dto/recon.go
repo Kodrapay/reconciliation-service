@@ -6,7 +6,7 @@ type ReconRunRequest struct {
 }
 
 type ReconRunResponse struct {
-	ID     string `json:"id"`
+	ID     int    `json:"id"`
 	Source string `json:"source"`
 	Status string `json:"status"`
 }

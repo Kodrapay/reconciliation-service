@@ -24,6 +24,9 @@ func (h *ReconciliationHandler) CreateRun(c *fiber.Ctx) error {
 }
 
 func (h *ReconciliationHandler) GetRun(c *fiber.Ctx) error {
-	id := c.Params("id")
+	id, err := c.ParamsInt("id") // Use c.ParamsInt
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid reconciliation run ID")
+	}
 	return c.JSON(h.svc.GetRun(c.Context(), id))
 }
