@@ -4,6 +4,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 
 	"github.com/kodra-pay/reconciliation-service/internal/dto"
+	"github.com/kodra-pay/reconciliation-service/internal/repositories"
 	"github.com/kodra-pay/reconciliation-service/internal/services"
 )
 
@@ -20,7 +21,11 @@ func (h *ReconciliationHandler) CreateRun(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "invalid request body")
 	}
-	return c.JSON(h.svc.CreateRun(c.Context(), req))
+	run, err := h.svc.CreateRun(c.Context(), req)
+	if err != nil {
+		return fiber.NewError(fiber.StatusBadRequest, err.Error())
+	}
+	return c.Status(fiber.StatusCreated).JSON(run)
 }
 
 func (h *ReconciliationHandler) GetRun(c *fiber.Ctx) error {
@@ -28,5 +33,20 @@ func (h *ReconciliationHandler) GetRun(c *fiber.Ctx) error {
 	if err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, "Invalid reconciliation run ID")
 	}
-	return c.JSON(h.svc.GetRun(c.Context(), id))
+	run, err := h.svc.GetRun(c.Context(), id)
+	if err != nil {
+		if err == repositories.ErrRunNotFound {
+			return fiber.NewError(fiber.StatusNotFound, "reconciliation run not found")
+		}
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(run)
+}
+
+func (h *ReconciliationHandler) ListRuns(c *fiber.Ctx) error {
+	runs, err := h.svc.ListRuns(c.Context())
+	if err != nil {
+		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
+	}
+	return c.JSON(runs)
 }
